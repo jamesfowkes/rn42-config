@@ -56,7 +56,24 @@ static char const * const s_names[] = {
 	NULL
 };
 
-void rn42_get_setting_name(char flag, char * buffer)
+static int NUMBER_OF_SETTINGS = 24;
+
+bool rn42_get_setting_info_by_index(int n, char& flag, char * buffer)
+{
+	flag = '\0';
+
+	bool setting_exists = n < NUMBER_OF_SETTINGS;
+
+	if (setting_exists)
+	{
+		flag = pgm_read_byte(s_names[n]);
+		strcpy_P(buffer, s_names[n]+1);
+	}
+
+	return setting_exists;
+}
+
+bool rn42_get_setting_info_by_flag(char flag, char * buffer)
 {
 	int i=0;
 	char pgm_flag;
@@ -67,10 +84,11 @@ void rn42_get_setting_name(char flag, char * buffer)
 		if (pgm_flag == flag)
 		{
 			strcpy_P(buffer, s_names[i]+1);
-			return;
+			return true;
 		}
 		i++;
 	}
+	return false;
 }
 
 void rn42_get_setting_value(Stream& stream, char flag, char * buffer)
@@ -80,5 +98,6 @@ void rn42_get_setting_value(Stream& stream, char flag, char * buffer)
 	stream.print('G');
 	stream.print(flag);
 	stream.print('\n');
+	
 	read_until_crnl(stream, buffer);
 }

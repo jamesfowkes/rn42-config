@@ -3,12 +3,29 @@
 #include "rn42.h"
 #include "rn42.private.h"
 
-static char s_valid_flags[] = {
+static bool is_valid_flag(char flag, char * pflags)
+{
+	while (*pflags != '\0')
+	{
+		if(*pflags == flag)
+		{
+			return true;
+		}
+		pflags++;
+	}
+
+	return false;
+}
+
+
+static char s_setting_flags[] = {
+	'7', // Seven bit mode
 	'A', // Authentication mode
 	'B', // Send break signal
 	'C', // Set service field class
 	'D', // Set device class
-	'E', // Set UUID (versions > 5.4)
+	'E', // Set UUID (versions >= 5.4) or encryption (version < 5.40)
+	'F', // Factory defaults (flag must be set to '1')
 	'H', // HID flag register
 	'I', // Set inquiry scan window
 	'J', // Set page scan window
@@ -23,16 +40,17 @@ static char s_valid_flags[] = {
 	'T', // Remote config timer
 	'U', // Baudrate
 	'W', // Smiff mode interval
+	'X', // Accept bonding only from stored address
 	'Y', // Transmit power
 	'Z', // Raw baudrate
 	'~', // Profile
 	'-', // Serialized friendly name
 	'|', // Radio/LED low power settings
-	
+	'?', // Enable role switch	
 	'\0'
 };
 
-static void send_set_string_command(Stream& stream, char flag, char * string)
+static void send_set_command(Stream& stream, char flag, char const * const string)
 {
 	rn42_enter_command_mode(stream);
 	stream.print('S');
@@ -43,13 +61,13 @@ static void send_set_string_command(Stream& stream, char flag, char * string)
 	read_until_crnl(stream, NULL);
 }
 
-bool rn42_set_string(Stream& stream, char flag, char * string)
+bool rn42_set(Stream& stream, char flag, char const * const string)
 {
-	bool result = is_valid_flag(flag, s_valid_flags);
+	bool result = is_valid_flag(flag, s_setting_flags);
 
 	if (result)
 	{
-		send_set_string_command(stream, flag, string);
+		send_set_command(stream, flag, string);
 	}
 
 	return result;
