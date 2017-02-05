@@ -7,7 +7,7 @@ static char s_valid_flags[] = {
 	'7', // Seven bit mode
 	'E', // Encryption (version < 5.40)
 	'F', // Factory defaults (flag must be set to '1')
-	'Z', // Accept bonding only from stored address
+	'X', // Accept bonding only from stored address
 	'?', // Enable role switch
 	'\0'
 };
@@ -20,7 +20,7 @@ static void send_set_flag_command(Stream& stream, char flag, bool value)
 	stream.print(',');
 	stream.print(value ? '1' : '0');
 	stream.print('\n');
-	rn42_leave_command_mode(stream);
+	read_until_crnl(stream, NULL);
 }
 
 bool rn42_set_flag(Stream& stream, char flag, bool value)

@@ -6,6 +6,7 @@ bool is_valid_flag(char flag, char * pflags)
 		{
 			return true;
 		}
+		pflags++;
 	}
 
 	return false;

@@ -2,6 +2,8 @@
 
 #include "rn42.h"
 
+static bool in_command_mode = false;
+
 char read_exactly_one_char(Stream& stream)
 {
 	while (!stream.available()) {}
@@ -40,20 +42,28 @@ void read_exactly_n_chars(Stream& stream, int n, char*buffer=NULL)
 	}
 }
 
-void rn42_enter_command_mode(Stream& stream)
+void rn42_enter_command_mode(Stream& stream, bool force)
 {
-	stream.print("$$$");
-	delay(1000);
-	read_until_crnl(stream, NULL);
+	if (!in_command_mode || force)
+	{
+		stream.print("$$$");
+		delay(1000);
+		read_until_crnl(stream, NULL);
+		in_command_mode = true;
+	}
 }
 
-void rn42_leave_command_mode(Stream& stream)
+void rn42_leave_command_mode(Stream& stream, bool force)
 {
-	stream.print("---\n");
-	read_until_crnl(stream, NULL);
+	if (in_command_mode || force)
+	{
+		stream.print("---\n");
+		read_until_crnl(stream, NULL);
+		in_command_mode = false;
+	}
 }
 
 void rn42_get_bluetooth_name(Stream& stream, char * buffer)
 {
-	rn42_get_flag_value(stream, 'N', buffer);
+	rn42_get_setting_value(stream, 'N', buffer);
 }

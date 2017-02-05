@@ -56,7 +56,7 @@ static char const * const s_names[] = {
 	NULL
 };
 
-void rn42_get_flag_name(char flag, char * buffer)
+void rn42_get_setting_name(char flag, char * buffer)
 {
 	int i=0;
 	char pgm_flag;
@@ -73,16 +73,12 @@ void rn42_get_flag_name(char flag, char * buffer)
 	}
 }
 
-void rn42_get_flag_value(Stream& stream, char flag, char * buffer)
+void rn42_get_setting_value(Stream& stream, char flag, char * buffer)
 {
-
 	rn42_enter_command_mode(stream);
 
 	stream.print('G');
 	stream.print(flag);
 	stream.print('\n');
 	read_until_crnl(stream, buffer);
-
-	rn42_leave_command_mode(stream);
-
 }

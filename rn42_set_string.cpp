@@ -40,7 +40,7 @@ static void send_set_string_command(Stream& stream, char flag, char * string)
 	stream.print(',');
 	stream.print(string);
 	stream.print('\n');
-	rn42_leave_command_mode(stream);
+	read_until_crnl(stream, NULL);
 }
 
 bool rn42_set_string(Stream& stream, char flag, char * string)
