@@ -2,16 +2,15 @@
 
 #include "rn42.h"
 
-static bool in_command_mode = false;
-
 char read_exactly_one_char(Stream& stream)
 {
 	while (!stream.available()) {}
 	return stream.read();	
 }
 
-void read_until_crnl(Stream& stream, char * buffer=NULL)
+void read_until_crnl(Stream& stream, char * buffer)
 {
+	
 	char c = '\0';
 
 	while (c != '\r')
@@ -23,11 +22,38 @@ void read_until_crnl(Stream& stream, char * buffer=NULL)
 			*buffer = '\0';
 		}
 	}
-
+	
 	read_exactly_one_char(stream);
 }
 
-void read_exactly_n_chars(Stream& stream, int n, char*buffer=NULL)
+void read_with_timeout(Stream& stream, char * buffer, unsigned long timeout)
+{
+	unsigned long start = millis();
+
+	if (buffer)
+	{
+		while ((millis() - start) < timeout)
+		{
+			if (stream.available())
+			{
+				*buffer++ = stream.read();
+				*buffer = '\0';
+			}
+		}
+	}
+	else
+	{
+		while ((millis() - start) < timeout)
+		{
+			if (stream.available())
+			{
+				(void)stream.read();
+			}
+		}
+	}
+}
+
+void read_exactly_n_chars(Stream& stream, int n, char * buffer)
 {
 	int i;
 	char c;
@@ -42,25 +68,17 @@ void read_exactly_n_chars(Stream& stream, int n, char*buffer=NULL)
 	}
 }
 
-void rn42_enter_command_mode(Stream& stream, bool force)
+void rn42_enter_command_mode(Stream& stream)
 {
-	if (!in_command_mode || force)
-	{
-		stream.print("$$$");
-		delay(1000);
-		read_until_crnl(stream, NULL);
-		in_command_mode = true;
-	}
+	stream.print("$$$");
+	delay(1000);
+	read_until_crnl(stream, NULL);
 }
 
-void rn42_leave_command_mode(Stream& stream, bool force)
+void rn42_leave_command_mode(Stream& stream)
 {
-	if (in_command_mode || force)
-	{
-		stream.print("---\n");
-		read_until_crnl(stream, NULL);
-		in_command_mode = false;
-	}
+	stream.print("---\n");
+	read_until_crnl(stream, NULL);
 }
 
 void rn42_get_bluetooth_name(Stream& stream, char * buffer)

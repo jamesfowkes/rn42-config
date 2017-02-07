@@ -59,6 +59,7 @@ static void send_set_command(Stream& stream, char flag, char const * const strin
 	stream.print(string);
 	stream.print('\n');
 	read_until_crnl(stream, NULL);
+	rn42_leave_command_mode(stream);
 }
 
 bool rn42_set(Stream& stream, char flag, char const * const string)

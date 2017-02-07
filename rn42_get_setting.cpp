@@ -8,6 +8,7 @@ static const char s_authentication_name[] PROGMEM = "AAuth Mode";
 static const char s_service_class_name[] PROGMEM = "CService Class";
 static const char s_device_class_name[] PROGMEM = "DDevice Class";
 static const char s_uuid_or_encryption_name[] PROGMEM = "EUUID/Encryption";
+static const char s_connected_address[] PROGMEM = "FConnectedAddress";
 static const char s_hid_name[] PROGMEM = "HHID Profile";
 static const char s_inquiry_scan_window_name[] PROGMEM = "IInq. Scan Window";
 static const char s_page_scan_window_name[] PROGMEM = "JPage Scan Window";
@@ -34,6 +35,7 @@ static char const * const s_names[] = {
 	s_service_class_name,
 	s_device_class_name,
 	s_uuid_or_encryption_name,
+	s_connected_address,
 	s_hid_name,
 	s_inquiry_scan_window_name,
 	s_page_scan_window_name,
@@ -56,7 +58,29 @@ static char const * const s_names[] = {
 	NULL
 };
 
-static int NUMBER_OF_SETTINGS = 24;
+static int NUMBER_OF_SETTINGS = 25;
+static const int FLAG_NOT_FOUND = -1;
+
+static int get_flag_index(char flag)
+{
+	int i = 0;
+	char pgm_flag;
+	while (s_names[i])
+	{
+		pgm_flag = pgm_read_byte(s_names[i]);
+		if (pgm_flag == flag)
+		{
+			return i;
+		}
+		i++;
+	}
+	return FLAG_NOT_FOUND;
+}
+
+bool rn42_is_valid_set_flag(char flag)
+{
+	return get_flag_index(flag) != FLAG_NOT_FOUND;
+}
 
 bool rn42_get_setting_info_by_index(int n, char& flag, char * buffer)
 {
@@ -75,18 +99,12 @@ bool rn42_get_setting_info_by_index(int n, char& flag, char * buffer)
 
 bool rn42_get_setting_info_by_flag(char flag, char * buffer)
 {
-	int i=0;
-	char pgm_flag;
+	int index = get_flag_index(flag);
 
-	while (s_names[i])
+	if (index != FLAG_NOT_FOUND)
 	{
-		pgm_flag = pgm_read_byte(s_names[i]);
-		if (pgm_flag == flag)
-		{
-			strcpy_P(buffer, s_names[i]+1);
-			return true;
-		}
-		i++;
+		strcpy_P(buffer, s_names[index]+1);
+		return true;
 	}
 	return false;
 }
@@ -100,4 +118,6 @@ void rn42_get_setting_value(Stream& stream, char flag, char * buffer)
 	stream.print('\n');
 	
 	read_until_crnl(stream, buffer);
+
+	rn42_leave_command_mode(stream);
 }
